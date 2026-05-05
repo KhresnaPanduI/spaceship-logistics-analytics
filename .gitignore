@@ -1,0 +1,27 @@
+# Secrets
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/.pytest_cache/
+
+# Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Misc
+spec_dump.txt
