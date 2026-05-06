@@ -14,6 +14,7 @@ import {
 
 import { ChartRow } from "@/lib/api";
 import { fmtCurrencyUSD, fmtPercent } from "@/lib/format";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 type Props = {
   rows: ChartRow[];
@@ -34,6 +35,11 @@ function shortClientId(v: string): string {
 // (right axis, %). Reads concentration risk and service quality together
 // for the top-N revenue clients.
 export function ConcentrationChart({ rows, height = 320 }: Props) {
+  const isMobile = useIsMobile();
+  const xAxisProps = isMobile
+    ? { angle: -35, textAnchor: "end" as const, height: 60, fontSize: 10 }
+    : { angle: 0, textAnchor: "middle" as const, height: 30, fontSize: 11 };
+
   if (!rows || rows.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center text-sm text-slate-500">
@@ -48,11 +54,11 @@ export function ConcentrationChart({ rows, height = 320 }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
         <XAxis
           dataKey="client_id"
-          fontSize={11}
           tickLine={false}
           axisLine={{ stroke: GRID }}
           interval={0}
           tickFormatter={shortClientId}
+          {...xAxisProps}
         />
         <YAxis
           yAxisId="left"

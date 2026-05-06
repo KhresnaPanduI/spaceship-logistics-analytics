@@ -15,6 +15,7 @@ import {
 
 import { ChartRow, VizSpec } from "@/lib/api";
 import { fmtAxisByUnit, fmtByUnit, fmtMonthYear } from "@/lib/format";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 type Props = {
   rows: ChartRow[];
@@ -27,6 +28,8 @@ const ACCENT_DARK = "#4f46e5"; // indigo-600
 const GRID = "#e2e8f0";
 
 export function ChartRenderer({ rows, viz, height = 300 }: Props) {
+  const isMobile = useIsMobile();
+
   if (!rows || rows.length === 0) {
     return <EmptyState />;
   }
@@ -34,6 +37,12 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
   const xKey = viz.x ?? "x";
   const yKey = viz.y ?? "y";
   const yUnit = viz.y_unit ?? null;
+
+  // On narrow viewports, tilt long category labels so they don't overlap.
+  // Desktop keeps horizontal labels since charts are wide enough.
+  const xAxisProps = isMobile
+    ? { angle: -35, textAnchor: "end" as const, height: 60, fontSize: 10 }
+    : { angle: 0, textAnchor: "middle" as const, height: 30, fontSize: 11 };
 
   const isPeriod = xKey === "period";
 
@@ -68,9 +77,10 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
           <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
           <XAxis
             dataKey={xKey}
-            fontSize={12}
             tickLine={false}
             axisLine={{ stroke: GRID }}
+            interval={isMobile ? "preserveStartEnd" : 0}
+            {...xAxisProps}
           />
           <YAxis
             fontSize={12}
@@ -105,10 +115,10 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
         <XAxis
           dataKey={xKey}
-          fontSize={11}
           tickLine={false}
           axisLine={{ stroke: GRID }}
           interval={0}
+          {...xAxisProps}
         />
         <YAxis
           fontSize={12}
