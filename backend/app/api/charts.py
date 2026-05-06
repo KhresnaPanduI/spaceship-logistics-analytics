@@ -35,7 +35,64 @@ def delivery_status() -> dict:
     rows = [dict(zip(cols, row)) for row in cur.fetchall()]
     return {
         "rows": rows,
-        "viz_spec": {"type": "bar", "x": "status", "y": "orders"},
+        "viz_spec": {"type": "bar", "x": "status", "y": "orders", "y_unit": "count"},
+    }
+
+
+@router.get("/on_time_rate_trend")
+def on_time_rate_trend() -> dict:
+    """Monthly on-time rate. Pairs with volume_over_time so the reader can see
+    whether delivery quality is improving or deteriorating as volume shifts.
+    """
+    res = run_query_metric(QueryMetricInput(metric="on_time_rate", time_grain="month"))
+    return res.model_dump()
+
+
+@router.get("/delay_rate_by_region")
+def delay_rate_by_region() -> dict:
+    """Delay rate broken down by region — geographic complement to the
+    by-carrier chart. Computed via the same registry path the AI uses.
+    """
+    res = run_query_metric(QueryMetricInput(metric="delay_rate", breakdown="region"))
+    return res.model_dump()
+
+
+@router.get("/client_revenue_concentration")
+def client_revenue_concentration() -> dict:
+    """Top-N clients by revenue with their delay rate alongside.
+
+    Custom SQL because this is a two-metric chart (revenue bars + delay-rate
+    line) — the registry intentionally only emits a single metric per query.
+    Surfaces concentration risk: which large clients are also experiencing
+    delivery problems.
+    """
+    con = get_connection()
+    cur = con.execute(
+        """
+        SELECT
+            client_id,
+            ROUND(SUM(order_value_usd), 2) AS revenue_usd,
+            SUM(CASE WHEN status IN ('delayed','exception') THEN 1 ELSE 0 END)::DOUBLE
+              / NULLIF(SUM(CASE WHEN status IN ('delivered','delayed','exception') THEN 1 ELSE 0 END), 0)
+              AS delay_rate,
+            COUNT(*) AS orders
+        FROM orders
+        GROUP BY client_id
+        ORDER BY revenue_usd DESC
+        LIMIT 10
+        """
+    )
+    cols = [d[0] for d in cur.description]
+    rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+    return {
+        "rows": rows,
+        # Custom viz consumed by the dedicated ConcentrationChart component.
+        "viz_spec": {
+            "type": "bar",
+            "x": "client_id",
+            "y": "revenue_usd",
+            "y_unit": "usd",
+        },
     }
 
 
@@ -65,5 +122,5 @@ def carrier_delay_rate() -> dict:
     rows = [dict(zip(cols, row)) for row in cur.fetchall()]
     return {
         "rows": rows,
-        "viz_spec": {"type": "bar", "x": "carrier", "y": "delay_rate"},
+        "viz_spec": {"type": "bar", "x": "carrier", "y": "delay_rate", "y_unit": "percent"},
     }

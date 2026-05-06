@@ -84,6 +84,23 @@ METRICS: dict[str, Metric] = {
         output_label="total_revenue_usd",
         unit="usd",
     ),
+    "in_transit_orders": Metric(
+        name="in_transit_orders",
+        description="Orders still in flight (status='in_transit', no delivery_date yet).",
+        sql_aggregate="SUM(CASE WHEN status = 'in_transit' THEN 1 ELSE 0 END)",
+        output_label="in_transit_orders",
+        unit="count",
+    ),
+    "revenue_at_risk_usd": Metric(
+        name="revenue_at_risk_usd",
+        description=(
+            "Order value (USD) tied up in delayed or exception statuses — i.e. revenue that "
+            "either has been or is at risk of being negatively impacted by delivery problems."
+        ),
+        sql_aggregate="SUM(CASE WHEN status IN ('delayed','exception') THEN order_value_usd ELSE 0 END)",
+        output_label="revenue_at_risk_usd",
+        unit="usd",
+    ),
 }
 
 # ---------- Dimensions (allowed breakdowns and filter fields) ----------
