@@ -174,7 +174,7 @@ function ResponseView({ response }: { response: AskResponse }) {
         <ChartCard title="Visualization">
           <ChartRenderer rows={result.rows} viz={result.viz_spec} />
         </ChartCard>
-        <PlanPanel plan={result.plan} />
+        <PlanPanel plan={result.plan} rowCount={result.rows.length} />
         <ChartCard title="Underlying data" subtitle={`${result.rows.length} row(s)`}>
           <DataTable rows={result.rows} metricCol={metricCol} metricUnit={metricUnit} />
         </ChartCard>

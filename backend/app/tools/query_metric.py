@@ -14,6 +14,7 @@ parameter binding is only needed for filter values.
 """
 from __future__ import annotations
 
+import time
 from datetime import date
 from typing import Any
 
@@ -101,9 +102,11 @@ def _infer_viz(inp: QueryMetricInput) -> VizSpec:
 def run_query_metric(inp: QueryMetricInput) -> QueryResult:
     sql, params = _build_sql(inp)
     con = get_connection()
+    t0 = time.perf_counter()
     cur = con.execute(sql, params)
     cols = [d[0] for d in cur.description]
     rows = [dict(zip(cols, _coerce_row(row))) for row in cur.fetchall()]
+    execution_ms = (time.perf_counter() - t0) * 1000
 
     plan = QueryPlan(
         metric=inp.metric,
@@ -113,6 +116,7 @@ def run_query_metric(inp: QueryMetricInput) -> QueryResult:
         date_from=inp.date_from,
         date_to=inp.date_to,
         sql=_inline_sql_for_display(sql, params),
+        execution_ms=round(execution_ms, 2),
     )
     return QueryResult(rows=rows, plan=plan, viz_spec=_infer_viz(inp))
 

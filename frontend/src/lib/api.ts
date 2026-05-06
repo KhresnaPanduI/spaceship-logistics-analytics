@@ -57,6 +57,7 @@ export type QueryPlan = {
   date_from: string | null;
   date_to: string | null;
   sql: string;
+  execution_ms: number;
 };
 
 export type QueryResult = {

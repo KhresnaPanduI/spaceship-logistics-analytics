@@ -1,10 +1,19 @@
 import { QueryPlan } from "@/lib/api";
 
-export function PlanPanel({ plan }: { plan: QueryPlan }) {
+export function PlanPanel({ plan, rowCount }: { plan: QueryPlan; rowCount: number }) {
+  // Surfaces the deterministic-execution story: the panel shows the exact SQL
+  // we ran, how many rows came back, and how long it took. No LLM math.
+  const ms = plan.execution_ms;
+  const msLabel = ms < 1 ? "<1ms" : `${ms.toFixed(ms < 10 ? 1 : 0)}ms`;
   return (
     <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-5 text-sm dark:border-slate-800/70 dark:bg-slate-900/40">
-      <div className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-        Query plan
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+          Query plan
+        </div>
+        <div className="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-mono text-[11px] tabular-nums text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          {rowCount} {rowCount === 1 ? "row" : "rows"} · {msLabel}
+        </div>
       </div>
       <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
         <Row label="Metric" value={<code>{plan.metric}</code>} />

@@ -85,6 +85,7 @@ class QueryPlan(BaseModel):
     date_from: Optional[date]
     date_to: Optional[date]
     sql: str
+    execution_ms: float = 0.0
 
 
 class QueryResult(BaseModel):
