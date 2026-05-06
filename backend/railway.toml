@@ -2,7 +2,10 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+# Full path to uvicorn — uv 0.5.x installs packages into /app/.venv,
+# but the Nixpacks container PATH only includes /opt/venv/bin, so a
+# bare `uvicorn` invocation isn't found at startup.
+startCommand = "/app/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"

@@ -1,0 +1,12 @@
+# Pin the uv version Nixpacks installs at build time.
+#
+# Nixpacks reads $NIXPACKS_UV_VERSION when running `pip install uv==<version>`.
+# We pin explicitly because:
+#   - Without a value, the install becomes `pip install uv==` and the
+#     build fails with "Invalid requirement".
+#   - uv 0.5.x changed where it installs packages (/app/.venv instead
+#     of /opt/venv), which breaks Nixpacks' PATH expectations. The
+#     start commands in railway.toml / Procfile reference the new
+#     /app/.venv path so this is consistent with 0.5.x behavior.
+[variables]
+NIXPACKS_UV_VERSION = "0.5.30"
