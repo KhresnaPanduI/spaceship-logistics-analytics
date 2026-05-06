@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 import { ChartRow, VizSpec } from "@/lib/api";
-import { fmtAxisByUnit, fmtByUnit, fmtMonthYear } from "@/lib/format";
+import { fmtAxisByUnit, fmtByUnit, fmtPeriod } from "@/lib/format";
 import { useIsMobile } from "@/lib/useIsMobile";
 
 type Props = {
@@ -54,9 +54,12 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
     : { angle: 0, textAnchor: "middle" as const, height: 30, fontSize: 11 };
 
   // Pre-format dates on the period axis so chart labels read naturally.
+  // Grain-aware so weekly/daily buckets don't all collapse into the same
+  // month string (every week in July would otherwise read "Jul 2025").
+  const grain = viz.time_grain ?? "month";
   const data = rows.map((r) => {
     if (isPeriod && typeof r[xKey] === "string") {
-      return { ...r, [xKey]: fmtMonthYear(r[xKey] as string) };
+      return { ...r, [xKey]: fmtPeriod(r[xKey] as string, grain) };
     }
     return r;
   });

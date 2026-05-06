@@ -75,6 +75,10 @@ class VizSpec(BaseModel):
     series: Optional[str] = None
     # Lets the frontend pick the right number formatter (percent / currency / days / count).
     y_unit: Optional[Literal["count", "percent", "days", "usd"]] = None
+    # Lets the frontend pick a grain-appropriate x-axis label format. Without
+    # this, weekly/daily buckets all render as the same month label because
+    # they share a common DATE_TRUNC bucket prefix.
+    time_grain: Optional[Literal["day", "week", "month", "year", "none"]] = None
 
 
 class QueryPlan(BaseModel):

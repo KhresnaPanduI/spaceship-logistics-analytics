@@ -1,6 +1,11 @@
 // Display formatters used across KPI tiles, chart axes, tooltips, and tables.
 
-import type { Unit } from "@/lib/api";
+import type { TimeGrain, Unit } from "@/lib/api";
+
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const;
 
 export function fmtPercent(v: number | null | undefined, digits = 1): string {
   if (v === null || v === undefined || Number.isNaN(v)) return "—";
@@ -41,11 +46,36 @@ export function fmtMonthYear(v: string | null | undefined): string {
   const iso = v.length > 10 ? v.slice(0, 10) : v;
   const m = iso.match(/^(\d{4})-(\d{2})/);
   if (!m) return iso;
-  const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ];
-  return `${monthNames[Number(m[2]) - 1]} ${m[1]}`;
+  return `${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
+}
+
+// Grain-aware period label so weekly/daily buckets don't all render as the
+// same month string. Backend buckets via DATE_TRUNC, so the period field is
+// always an ISO date at the start of the bucket.
+//   year  → "2025"
+//   month → "Jul 2025"
+//   week  → "Jul 28"  (start-of-week date; year is in the chart subtitle)
+//   day   → "Sep 19"
+export function fmtPeriod(
+  v: string | null | undefined,
+  grain: TimeGrain | null | undefined,
+): string {
+  if (!v) return "—";
+  const iso = v.length > 10 ? v.slice(0, 10) : v;
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const [, year, mm, dd] = m;
+  const month = MONTHS[Number(mm) - 1];
+  switch (grain) {
+    case "year":
+      return year;
+    case "week":
+    case "day":
+      return `${month} ${Number(dd)}`;
+    case "month":
+    default:
+      return `${month} ${year}`;
+  }
 }
 
 // One-stop formatter dispatched by registry unit. Used for chart tooltips,

@@ -93,6 +93,7 @@ def _infer_viz(inp: QueryMetricInput) -> VizSpec:
             y=metric.output_label,
             series=inp.breakdown,
             y_unit=metric.unit,
+            time_grain=inp.time_grain,
         )
     if inp.breakdown:
         return VizSpec(type="bar", x=inp.breakdown, y=metric.output_label, y_unit=metric.unit)

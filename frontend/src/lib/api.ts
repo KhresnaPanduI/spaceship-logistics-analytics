@@ -34,12 +34,14 @@ export type Kpis = {
 
 export type ChartRow = Record<string, string | number | null>;
 export type Unit = "count" | "percent" | "days" | "usd";
+export type TimeGrain = "day" | "week" | "month" | "year" | "none";
 export type VizSpec = {
   type: "line" | "bar" | "stacked_bar" | "number" | "table";
   x?: string | null;
   y?: string | null;
   series?: string | null;
   y_unit?: Unit | null;
+  time_grain?: TimeGrain | null;
 };
 
 export type ChartResponse = {
