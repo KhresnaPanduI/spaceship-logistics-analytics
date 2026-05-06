@@ -38,13 +38,20 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
   const yKey = viz.y ?? "y";
   const yUnit = viz.y_unit ?? null;
 
-  // On narrow viewports, tilt long category labels so they don't overlap.
-  // Desktop keeps horizontal labels since charts are wide enough.
-  const xAxisProps = isMobile
-    ? { angle: -35, textAnchor: "end" as const, height: 60, fontSize: 10 }
-    : { angle: 0, textAnchor: "middle" as const, height: 30, fontSize: 11 };
-
   const isPeriod = xKey === "period";
+
+  // Tilt labels when they'd otherwise overlap. Time-series always tilts since
+  // 12 monthly ticks don't fit horizontally in a half-width card. Categorical
+  // bar/line stays horizontal on desktop and tilts only on narrow viewports.
+  const needsAngle = isMobile || isPeriod;
+  const xAxisProps = needsAngle
+    ? {
+        angle: isMobile ? -35 : -25,
+        textAnchor: "end" as const,
+        height: 50,
+        fontSize: isMobile ? 10 : 11,
+      }
+    : { angle: 0, textAnchor: "middle" as const, height: 30, fontSize: 11 };
 
   // Pre-format dates on the period axis so chart labels read naturally.
   const data = rows.map((r) => {
