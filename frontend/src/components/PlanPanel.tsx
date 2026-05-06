@@ -2,12 +2,14 @@ import { QueryPlan } from "@/lib/api";
 
 export function PlanPanel({ plan }: { plan: QueryPlan }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900/40">
-      <div className="font-medium text-slate-900 dark:text-slate-100">Query plan</div>
-      <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
-        <Row label="Metric" value={plan.metric} />
+    <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-5 text-sm dark:border-slate-800/70 dark:bg-slate-900/40">
+      <div className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+        Query plan
+      </div>
+      <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+        <Row label="Metric" value={<code>{plan.metric}</code>} />
         <Row label="Time grain" value={plan.time_grain} />
-        <Row label="Breakdown" value={plan.breakdown ?? "—"} />
+        <Row label="Breakdown" value={plan.breakdown ? <code>{plan.breakdown}</code> : "—"} />
         <Row
           label="Date range"
           value={
@@ -18,6 +20,7 @@ export function PlanPanel({ plan }: { plan: QueryPlan }) {
         />
         <Row
           label="Filters"
+          full
           value={
             plan.filters.length === 0
               ? "—"
@@ -32,14 +35,14 @@ export function PlanPanel({ plan }: { plan: QueryPlan }) {
                   )
                   .join("; ")
           }
-          full
         />
       </dl>
-      <details className="mt-3">
-        <summary className="cursor-pointer text-xs font-medium text-slate-600 dark:text-slate-300">
+      <details className="group mt-4">
+        <summary className="cursor-pointer select-none text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100">
+          <span className="mr-1 inline-block transition-transform group-open:rotate-90">›</span>
           SQL executed
         </summary>
-        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-slate-900 p-3 text-xs text-slate-100">
+        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-md bg-slate-900 p-3 font-mono text-[11px] leading-relaxed text-slate-100">
           {plan.sql}
         </pre>
       </details>
@@ -47,11 +50,19 @@ export function PlanPanel({ plan }: { plan: QueryPlan }) {
   );
 }
 
-function Row({ label, value, full = false }: { label: string; value: string; full?: boolean }) {
+function Row({
+  label,
+  value,
+  full = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  full?: boolean;
+}) {
   return (
     <div className={full ? "sm:col-span-2" : undefined}>
       <dt className="inline text-slate-500 dark:text-slate-400">{label}: </dt>
-      <dd className="inline text-slate-800 dark:text-slate-200">{value}</dd>
+      <dd className="inline font-medium text-slate-800 dark:text-slate-200">{value}</dd>
     </div>
   );
 }

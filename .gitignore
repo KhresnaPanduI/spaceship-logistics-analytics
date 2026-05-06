@@ -25,3 +25,8 @@ Thumbs.db
 
 # Misc
 spec_dump.txt
+
+# Reference docs / stray data at repo root (not part of deliverable)
+/Coding_assignment.docx
+/logistics-spec.docx
+/mock_logistics_data.csv

@@ -73,6 +73,8 @@ class VizSpec(BaseModel):
     x: Optional[str] = None
     y: Optional[str] = None
     series: Optional[str] = None
+    # Lets the frontend pick the right number formatter (percent / currency / days / count).
+    y_unit: Optional[Literal["count", "percent", "days", "usd"]] = None
 
 
 class QueryPlan(BaseModel):

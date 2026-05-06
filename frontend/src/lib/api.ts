@@ -26,16 +26,20 @@ export type Kpis = {
   total_orders: number;
   delivered_orders: number;
   delayed_orders: number;
+  in_transit_orders: number;
   on_time_rate: number;
   avg_delivery_days: number;
+  revenue_at_risk_usd: number;
 };
 
 export type ChartRow = Record<string, string | number | null>;
+export type Unit = "count" | "percent" | "days" | "usd";
 export type VizSpec = {
   type: "line" | "bar" | "stacked_bar" | "number" | "table";
   x?: string | null;
   y?: string | null;
   series?: string | null;
+  y_unit?: Unit | null;
 };
 
 export type ChartResponse = {

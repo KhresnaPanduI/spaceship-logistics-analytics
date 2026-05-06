@@ -86,10 +86,16 @@ def _build_sql(inp: QueryMetricInput) -> tuple[str, list[Any]]:
 def _infer_viz(inp: QueryMetricInput) -> VizSpec:
     metric = METRICS[inp.metric]
     if inp.time_grain != "none":
-        return VizSpec(type="line", x="period", y=metric.output_label, series=inp.breakdown)
+        return VizSpec(
+            type="line",
+            x="period",
+            y=metric.output_label,
+            series=inp.breakdown,
+            y_unit=metric.unit,
+        )
     if inp.breakdown:
-        return VizSpec(type="bar", x=inp.breakdown, y=metric.output_label)
-    return VizSpec(type="number", y=metric.output_label)
+        return VizSpec(type="bar", x=inp.breakdown, y=metric.output_label, y_unit=metric.unit)
+    return VizSpec(type="number", y=metric.output_label, y_unit=metric.unit)
 
 
 def run_query_metric(inp: QueryMetricInput) -> QueryResult:

@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 import { ChartRow, VizSpec } from "@/lib/api";
-import { fmtDateISO } from "@/lib/format";
+import { fmtAxisByUnit, fmtByUnit, fmtMonthYear } from "@/lib/format";
 
 type Props = {
   rows: ChartRow[];
@@ -22,7 +22,9 @@ type Props = {
   height?: number;
 };
 
-const PALETTE = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed", "#0891b2"];
+const ACCENT = "#6366f1"; // indigo-500
+const ACCENT_DARK = "#4f46e5"; // indigo-600
+const GRID = "#e2e8f0";
 
 export function ChartRenderer({ rows, viz, height = 300 }: Props) {
   if (!rows || rows.length === 0) {
@@ -31,11 +33,14 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
 
   const xKey = viz.x ?? "x";
   const yKey = viz.y ?? "y";
+  const yUnit = viz.y_unit ?? null;
 
-  // Pre-format dates on the period axis so charts render readable labels.
+  const isPeriod = xKey === "period";
+
+  // Pre-format dates on the period axis so chart labels read naturally.
   const data = rows.map((r) => {
-    if (xKey === "period" && typeof r[xKey] === "string") {
-      return { ...r, [xKey]: fmtDateISO(r[xKey] as string) };
+    if (isPeriod && typeof r[xKey] === "string") {
+      return { ...r, [xKey]: fmtMonthYear(r[xKey] as string) };
     }
     return r;
   });
@@ -43,8 +48,8 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
   if (viz.type === "number") {
     const v = rows[0]?.[yKey] ?? null;
     return (
-      <div className="flex h-32 items-center justify-center text-5xl font-semibold tabular-nums">
-        {v === null ? "—" : typeof v === "number" ? v.toLocaleString() : String(v)}
+      <div className="flex h-32 items-center justify-center text-5xl font-semibold tabular-nums tracking-tight">
+        {fmtByUnit(v, yUnit)}
       </div>
     );
   }
@@ -53,21 +58,40 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
     return <TableView rows={rows} />;
   }
 
+  const tooltipFormatter = (value: unknown) => [fmtByUnit(value, yUnit), yKey];
+  const yTickFormatter = (v: number) => fmtAxisByUnit(v, yUnit);
+
   if (viz.type === "line") {
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey={xKey} fontSize={12} />
-          <YAxis fontSize={12} />
-          <Tooltip />
-          <Legend />
+        <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
+          <XAxis
+            dataKey={xKey}
+            fontSize={12}
+            tickLine={false}
+            axisLine={{ stroke: GRID }}
+          />
+          <YAxis
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={yTickFormatter}
+            width={60}
+          />
+          <Tooltip
+            formatter={tooltipFormatter}
+            contentStyle={tooltipStyle}
+            labelStyle={{ fontWeight: 500 }}
+          />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
           <Line
             type="monotone"
             dataKey={yKey}
-            stroke={PALETTE[0]}
+            stroke={ACCENT}
             strokeWidth={2}
-            dot={{ r: 3 }}
+            dot={{ r: 3, fill: ACCENT }}
+            activeDot={{ r: 5 }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -77,17 +101,44 @@ export function ChartRenderer({ rows, viz, height = 300 }: Props) {
   // bar / stacked_bar
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-        <XAxis dataKey={xKey} fontSize={12} />
-        <YAxis fontSize={12} />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey={yKey} fill={PALETTE[0]} />
+      <BarChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
+        <XAxis
+          dataKey={xKey}
+          fontSize={11}
+          tickLine={false}
+          axisLine={{ stroke: GRID }}
+          interval={0}
+        />
+        <YAxis
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={yTickFormatter}
+          width={60}
+        />
+        <Tooltip
+          formatter={tooltipFormatter}
+          contentStyle={tooltipStyle}
+          labelStyle={{ fontWeight: 500 }}
+          cursor={{ fill: "rgba(99, 102, 241, 0.06)" }}
+        />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Bar dataKey={yKey} fill={ACCENT} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
+
+const tooltipStyle = {
+  fontSize: 12,
+  borderRadius: 8,
+  border: "1px solid #e2e8f0",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+};
+
+// Re-exported so dashboard cards that want a same-style accent can match.
+export const CHART_ACCENT = { light: ACCENT, dark: ACCENT_DARK };
 
 function EmptyState() {
   return (
@@ -107,7 +158,7 @@ function TableView({ rows }: { rows: ChartRow[] }) {
             {cols.map((c) => (
               <th
                 key={c}
-                className="border-b border-slate-200 px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-300"
+                className="border-b border-slate-200 px-3 py-2 text-left font-medium text-slate-600 dark:border-slate-800 dark:text-slate-300"
               >
                 {c}
               </th>
